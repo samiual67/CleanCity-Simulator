@@ -1,0 +1,16 @@
+CleanCity 360 - predefined sample data (also hard-coded in src/WasteManager.cpp)
+Bin  RoadNode  Capacity(kg)  InitialLevel(%)  Category
+DB-01   0   100   85   Organic
+DB-02   2   120   40   Plastic
+DB-03   4    80   15   Paper
+DB-04   6   150   62   Metal
+DB-05   8   100   95   Glass
+DB-06  10   120   30   Organic
+DB-07  12    90   72   Plastic
+DB-08  13   100   10   Paper
+DB-09  14   140   55   Metal
+DB-10  16   100  100   Glass
+DB-11  17   110   25   Organic
+DB-12  18   100   48   Plastic
+Recycle rates: Organic 85%, Plastic 60%, Paper 80%, Metal 95%, Glass 90%
+Road graph: 5x4 grid of intersections (nodes 0-19) + depot node 20 on the bottom road.

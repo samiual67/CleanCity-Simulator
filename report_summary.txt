@@ -1,0 +1,25 @@
+CleanCity Simulator - Simulation Report
+=================================
+Simulation time: 01:29   Status: running
+Dustbins: 12 total, 6 full, 6 partial, 0 empty
+Waste collected: 100 kg in 1 collections
+Waste remaining in bins: 1158 kg
+City cleanliness: 12%
+
+Waste by category (collected / remaining / recycled):
+  Organic       0 kg  /     275 kg  /       0 kg
+  Plastic       0 kg  /     304 kg  /       0 kg
+  Paper         0 kg  /     143 kg  /       0 kg
+  Metal         0 kg  /     290 kg  /       0 kg
+  Glass       100 kg  /     147 kg  /      90 kg
+
+Zone cleanliness:
+  Green Park        0%  (Critical)
+  Downtown         10%  (Critical)
+  Riverside        37%  (Needs attention)
+  Industrial Hub   10%  (Critical)
+
+Trucks:
+  TR-1: 1 collections, 100 kg - Idle at depot
+  TR-2: 0 collections, 0 kg - Idle at depot
+  TR-3: 0 collections, 0 kg - Idle at depot
