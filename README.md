@@ -13,10 +13,10 @@ and link libraries: `freeglut opengl32 glu32`. Or just run `build_windows.bat`.
 1. *Start Simulation* -> City Map opens. Click a dustbin (details popup + info card).
 2. *Find Shortest Route* draws the Dijkstra route; *Dispatch Garbage Truck* sends a truck (stops, collects, returns, unloads to recycling).
 3. *Toggle Traffic*: congested roads (red) cost 2.5x, routes adapt. *Toggle Day/Night*, *Auto Dispatch*, *Add Waste*, *Empty Selected Bin*, *Reset*.
-4. Tabs: Dashboard, City Map, Recycling, Statistics (+ Generate Report -> `report_summary.txt`), CG Lab (5 transformations with matrix display).
+4. Tabs: Dashboard, City Map, Recycling, Statistics (+ Generate Report -> `report_summary.txt`).
 
 Keys: Space pause/resume, 1-5 screens, N night, T traffic, A add waste, E empty, D dispatch, R route, S speed x1/2/4, U auto, +/- zoom, arrows pan, 0 reset view, Esc back/exit.
-Mouse: wheel zoom, drag pan, click select. In CG Lab (translation mode) click the canvas to move the object.
+Mouse: wheel zoom, drag pan, click select.
 
 ## Structure
 `src/` + `include/`: Application (screens/input), Simulation (state + commands), CityLayout/CityMap (city & render), Dustbin, WasteManager, GarbageTruck,

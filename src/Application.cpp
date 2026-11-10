@@ -38,20 +38,20 @@ void Application::buildButtons() {
     splashButtons.push_back(Button(BTN_S_ABOUT, 490, 424, 300, 52, "About Project", C_BLUE));
     splashButtons.push_back(Button(BTN_S_EXIT,  490, 488, 300, 52, "Exit", C_RED));
 
-    const char* names[5] = { "Dashboard", "City Map", "Recycling", "Statistics", "CG Lab" };
-    for (int i = 0; i < 5; i++) navButtons.push_back(Button(BTN_NAV_DASH + i, 300 + i * 136, 11, 128, 34, names[i], C_TEAL));
+    const char* names[4] = { "Dashboard", "City Map", "Recycling", "Statistics" };
+    for (int i = 0; i < 4; i++) navButtons.push_back(Button(BTN_NAV_DASH + i, 300 + i * 136, 11, 128, 34, names[i], C_TEAL));
     navButtons.push_back(Button(BTN_NAV_HOME, 1186, 11, 80, 34, "Home", C_BLUE));
 
     struct Def { int id; const char* label; Color c; };
-    Def defs[12] = {
+    Def defs[11] = {
         { BTN_C_START, "Start Simulation", C_GREEN }, { BTN_C_PAUSE, "Pause Simulation", C_ORANGE },
         { BTN_C_RESUME, "Resume Simulation", C_GREEN }, { BTN_C_RESET, "Reset Simulation", C_RED },
         { BTN_C_ADD, "Add Waste", C_YELLOW }, { BTN_C_EMPTY, "Empty Selected Bin", C_TEAL },
         { BTN_C_DISPATCH, "Dispatch Garbage Truck", C_GREEN }, { BTN_C_ROUTE, "Find Shortest Route", C_BLUE },
         { BTN_C_TRAFFIC, "Toggle Traffic", C_ORANGE }, { BTN_C_DAYNIGHT, "Toggle Day/Night", C_BLUE },
-        { BTN_C_TRANSFORM, "Transformation Demo", C_TEAL }, { BTN_C_AUTO, "Auto Dispatch", C_GREEN }
+        { BTN_C_AUTO, "Auto Dispatch", C_GREEN }
     };
-    for (int i = 0; i < 12; i++)
+    for (int i = 0; i < 11; i++)
         controlButtons.push_back(Button(defs[i].id, 972 + (i % 2) * 150, 98 + (i / 2) * 40, 144, 34, defs[i].label, defs[i].c));
     categoryButton = Button(BTN_C_CATEGORY, 972, 344 + 182 - 38, 296, 30, "Change Waste Category", C_TEAL);
     reportButton.push_back(Button(BTN_REPORT, 1060, 16, 196, 30, "Generate Report", C_GREEN));
@@ -194,9 +194,9 @@ void Application::drawSplash() {
         float sx = std::fmod(i * 197.0f, WIN_W), sy = std::fmod(i * 61.0f, 300.0f);
         Gfx::point(sx, sy, 1.5f + (i % 3) * 0.5f, Color(1, 1, 1, 0.3f + 0.5f * std::fabs(std::sin(t * 1.5f + i))));
     }
-    Gfx::circle(1110, 110, 38, Color(0.95f, 0.97f, 1.0f, 0.12f), 32);
-    Gfx::circle(1110, 110, 28, Color(0.95f, 0.97f, 1.0f), 32);
-    Gfx::circle(1100, 104, 28, Color(0.05f, 0.12f, 0.22f, 0.25f), 32);
+    Gfx::circle(1110, 110, 72, Color(0.8f, 0.9f, 1.0f, 0.04f), 40); Gfx::circle(1110, 110, 56, Color(0.8f, 0.9f, 1.0f, 0.06f), 40); Gfx::circle(1110, 110, 42, Color(0.8f, 0.9f, 1.0f, 0.10f), 40);
+    Gfx::circle(1110, 110, 30, Color(0.96f, 0.96f, 0.88f), 40); Gfx::circle(1099, 100, 7, Color(0.82f, 0.84f, 0.80f), 20); Gfx::circle(1121, 119, 9, Color(0.84f, 0.86f, 0.82f), 20); Gfx::circle(1117, 97, 4, Color(0.84f, 0.86f, 0.82f), 16); Gfx::circle(1100, 122, 5, Color(0.86f, 0.88f, 0.84f), 16);
+    
     for (int i = 0; i < 4; i++) {                                          // moving clouds
         float cx = std::fmod(t * (10 + i * 5) + i * 400.0f, WIN_W + 300) - 150, cy = 90 + i * 55;
         Gfx::ellipse(cx, cy, 70, 16, Color(1, 1, 1, 0.10f), 20);
@@ -209,11 +209,11 @@ void Application::drawSplash() {
             float bh = 80 + std::fmod((float)(i * 37 + layer * 53), 150.0f) + (layer ? 0 : 40);
             float by = 625 - bh;
             Color body = layer ? Color(0.05f, 0.14f, 0.22f) : Color(0.03f, 0.08f, 0.14f);
-            Gfx::rect(bx, by, bw - 4, bh, body);
+            Gfx::rectGradient(bx, by, bw - 4, bh, Color(body.r + 0.05f, body.g + 0.09f, body.b + 0.12f), body); Gfx::rect(bx + bw - 8, by, 4, bh, Color(0, 0, 0, 0.18f)); if (i % 3 == 0) { float ax = bx + (bw - 4) / 2; Gfx::line(ax, by, ax, by - 20, Color(0.45f, 0.5f, 0.58f), 2); Gfx::point(ax, by - 20, 5, Color(1, 0.25f, 0.2f, 0.5f + 0.5f * std::sin(t * 3 + i))); } else if (i % 4 == 1) Gfx::rect(bx + 10, by - 10, bw - 24, 10, body);
             for (int wy = 0; wy < (int)(bh / 16); wy++)
                 for (int wx = 0; wx < 3; wx++) {
                     bool on = ((i * 5 + wy * 3 + wx * 7 + (int)(t * 0.4f)) % 4) != 0;
-                    if (on) Gfx::rect(bx + 6 + wx * 15, by + 8 + wy * 16, 8, 8, layer ? Color(1, 0.85f, 0.4f, 0.55f) : Color(1, 0.9f, 0.5f, 0.85f));
+                    if (on) { bool cool = ((i + wy * 2 + wx) % 6) == 0; Color wc = cool ? Color(0.7f, 0.88f, 1, 0.8f) : Color(1, 0.88f, 0.45f, 0.9f); if (layer) wc.a *= 0.6f; Gfx::rect(bx + 6 + wx * 15, by + 8 + wy * 16, 8, 8, wc); }
                 }
         }
     }
@@ -231,7 +231,7 @@ void Application::drawSplash() {
     Gfx::strokeText(x0, 232, "CLEANCITY ", 0.46f, C_TEXT, 3);
     Gfx::strokeText(x0 + w1, 232, "SIMULATOR", 0.46f, C_GREEN, 3);
     Gfx::textCentered(640, 272, "Smart City Waste Management & Cleanliness Monitoring Simulation", C_TEXT, FONT_M);
-    Gfx::textCentered(640, 304, "100% software simulation   |   C++ & OpenGL   |   Dijkstra routing   |   2D transformations", C_DIM);
+    Gfx::textCentered(640, 304, "100% software simulation   |   C++ & OpenGL   |   Dijkstra routing", C_DIM);
 
     for (size_t i = 0; i < splashButtons.size(); i++)
         UI::button(splashButtons[i], splashButtons[i].contains(mx, my), FONT_M);
@@ -257,8 +257,8 @@ void Application::drawAbout() {
         "  - Dijkstra's shortest path on the road graph (routes are really computed)",
         "",
         "How to use: Start Simulation, click a dustbin on the City Map, then use",
-        "Find Shortest Route and Dispatch Garbage Truck. Open the CG Lab to try the",
-        "five transformations on trucks, trees, buildings and dustbins.",
+        "Find Shortest Route and Dispatch Garbage Truck.",
+        
         "",
         "Click anywhere or press Esc to close."
     };
@@ -376,7 +376,7 @@ void Application::onKey(unsigned char key) {
         case '2': if (screen != SCR_SPLASH) screen = SCR_MAP; break;
         case '3': if (screen != SCR_SPLASH) screen = SCR_RECYCLE; break;
         case '4': if (screen != SCR_SPLASH) screen = SCR_STATS; break;
-        case '5': if (screen != SCR_SPLASH) screen = SCR_LAB; break;
+        
         case ' ': if (!sim.started) sim.cmdStart(); else if (sim.paused) sim.cmdResume(); else sim.cmdPause(); break;
         case '+': case '=': mapView.cam.zoomBy(1.15f, center); break;
         case '-': case '_': mapView.cam.zoomBy(1.0f / 1.15f, center); break;
