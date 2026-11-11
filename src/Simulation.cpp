@@ -16,7 +16,7 @@ void Simulation::init() {
     static const Color cols[3] = { Color(0.16f, 0.72f, 0.42f), Color(0.20f, 0.60f, 0.90f), Color(0.95f, 0.62f, 0.15f) };
     for (int i = 0; i < 3; i++) {
         GarbageTruck t;
-        t.init(i, Vec2(d.x - 52 + 52 * i, d.y - 23), cols[i]);
+        t.init(i, Vec2(d.x - 52 + 52 * i, d.y - 29), cols[i]);
         trucks.push_back(t);
     }
 
@@ -58,6 +58,21 @@ void Simulation::applyTraffic() {
         planner.setEdgeFactor((int)e, (traffic && City::isCongested((int)e)) ? 2.5f : 1.0f);
 }
 
+// true when two truck-sized boxes (centre, unit direction, half length, shared half width) overlap
+static bool boxHit(const Vec2& c1, const Vec2& u1, float hl1, const Vec2& c2, const Vec2& u2, float hl2, float hw) {
+    Vec2 v1(-u1.y, u1.x), v2(-u2.y, u2.x);
+    Vec2 axes[4] = { u1, v1, u2, v2 };
+    Vec2 d = c2 - c1;
+    for (int k = 0; k < 4; k++) {
+        const Vec2& ax = axes[k];
+        float dist = std::fabs(d.x * ax.x + d.y * ax.y);
+        float r1 = hl1 * std::fabs(u1.x * ax.x + u1.y * ax.y) + hw * std::fabs(v1.x * ax.x + v1.y * ax.y);
+        float r2 = hl2 * std::fabs(u2.x * ax.x + u2.y * ax.y) + hw * std::fabs(v2.x * ax.x + v2.y * ax.y);
+        if (dist >= r1 + r2) return false;
+    }
+    return true;
+}
+
 void Simulation::update(float dt) {
     time += dt;
     dayFactor += (dayTarget - dayFactor) * clampf(dt * 2.0f, 0, 1);
@@ -67,7 +82,36 @@ void Simulation::update(float dt) {
     if (!running()) return;
     float sdt = dt * speed;
     waste.update(sdt);
-    for (size_t i = 0; i < trucks.size(); i++) trucks[i].update(sdt, planner, waste, recycling, depotNode);
+    static std::vector<int> waitFor;      // which truck each truck is waiting for (-1 = none)
+    static std::vector<float> waitTime;
+    if (waitFor.size() != trucks.size()) { waitFor.assign(trucks.size(), -1); waitTime.assign(trucks.size(), 0.0f); }
+    for (size_t i = 0; i < trucks.size(); i++) {
+        GarbageTruck& me = trucks[i];
+        int wf = -1;
+        if (me.mover.active && (me.state == T_TO_BIN || me.state == T_RETURNING)) {
+            Vec2 tgt = me.mover.ti < me.mover.wp.size() ? me.mover.wp[me.mover.ti] : me.mover.pos;
+            Vec2 dv = tgt - me.mover.pos;
+            float dl = std::sqrt(dv.x * dv.x + dv.y * dv.y);
+            if (dl > 0.01f) {
+                Vec2 fwd = dv * (1.0f / dl);                              // direction of travel
+                float ext = 8.0f + me.mover.speed * sdt * 2.0f;           // safety gap in front of the truck
+                Vec2 probe = me.mover.pos + fwd * (ext * 0.5f);
+                for (size_t j = 0; j < trucks.size(); j++) {
+                    if (j == i) continue;
+                    const GarbageTruck& o = trucks[j];
+                    float oa = o.mover.angle * PI_F / 180.0f;
+                    bool moving = o.mover.active && (o.state == T_TO_BIN || o.state == T_RETURNING);
+                    bool stopped = !moving || waitFor[j] != -1;
+                    if (waitFor[j] == (int)i || !(o.id < me.id || stopped)) continue;
+                    if (boxHit(probe, fwd, 24.0f + ext * 0.5f, o.mover.pos, Vec2(std::cos(oa), std::sin(oa)), 24.0f, 9.0f)) { wf = (int)j; break; }
+                }
+            }
+        }
+        if (wf >= 0) { waitTime[i] += sdt; if (waitTime[i] > 5.0f) wf = -1; }     // never wait forever
+        else waitTime[i] = 0;
+        waitFor[i] = wf;
+        me.update(wf >= 0 ? 0.0f : sdt, planner, waste, recycling, depotNode);   // keep distance, never drive through another truck
+    }
     recycling.update(sdt);
     if (traffic) updateCars(sdt);
 

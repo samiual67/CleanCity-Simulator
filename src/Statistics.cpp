@@ -133,7 +133,7 @@ void drawReportOverlay(const Simulation& sim) {
     UI::panel(x, y, w, h, "Simulation Report");
     std::vector<std::string> L = reportLines(sim);
     for (size_t i = 0; i < L.size(); i++) Gfx::text(x + 24, y + 56 + i * 20, L[i], C_TEXT);
-    Gfx::text(x + 24, y + h - 18, "Saved to report_summary.txt  -  click anywhere or press Esc to close", C_GREEN);
+    Gfx::text(x + 24, y + h - 18, "Saved to report_summary.pdf  -  click anywhere or press Esc to close", C_GREEN);
 }
 
 } // namespace Statistics

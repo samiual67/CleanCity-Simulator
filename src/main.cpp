@@ -1,10 +1,9 @@
-// CleanCity Simulator - Smart City Waste Management & Cleanliness Monitoring Simulation
-// C++ / OpenGL / FreeGLUT - entry point (GLUT callbacks only; everything else is in Application)
 #include "GLInclude.h"
 #include <cstdlib>
 #include "Application.h"
 
 static Application app;
+
 static int lastTime = 0;
 
 static void display() {

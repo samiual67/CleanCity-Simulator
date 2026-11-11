@@ -289,7 +289,7 @@ void CityMapView::draw(const Simulation& sim) {
         const GarbageTruck& t = sim.trucks[i];
         float a = t.mover.angle * PI_F / 180.0f;
         Vec2 p = t.mover.pos;
-        if (t.state == T_TO_BIN || t.state == T_RETURNING) p = p + Vec2(-std::sin(a), std::cos(a)) * 4.0f;
+        
         Gfx::pushMatrix(makeTranslation(p.x, p.y) * makeRotation(t.mover.angle));
         Objects::drawTruck(t.color, t.wheelAngle, t.cargoTotal() / 300.0f, night);
         Gfx::popMatrix();

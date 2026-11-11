@@ -47,6 +47,44 @@ static std::vector<Vec2> routePoints(const RoutePlanner& rp, const std::vector<i
     return p;
 }
 
+static std::vector<Vec2> lanePath(const std::vector<Vec2>& in) {
+    std::vector<Vec2> p;                                   // drop repeated points
+    for (size_t i = 0; i < in.size(); i++)
+        if (p.empty() || distf(p.back(), in[i]) > 0.001f) p.push_back(in[i]);
+    std::vector<Vec2> o;
+    if (p.size() < 2) return o;
+    std::vector<Vec2> n;                                   // left-hand normal of every road segment
+    for (size_t i = 0; i + 1 < p.size(); i++) {
+        Vec2 d = p[i + 1] - p[i];
+        float len = std::sqrt(d.x * d.x + d.y * d.y);
+        n.push_back(Vec2(d.y / len, -d.x / len));
+    }
+    o.push_back(p.front() + n.front() * LANE_OFFSET);
+    for (size_t i = 1; i + 1 < p.size(); i++) {            // mitre the lane at every junction
+        Vec2 s = n[i - 1] + n[i];
+        float den = 1.0f + n[i - 1].x * n[i].x + n[i - 1].y * n[i].y;
+        o.push_back(den > 0.2f ? p[i] + s * (LANE_OFFSET / den) : p[i] + n[i] * LANE_OFFSET);
+    }
+    o.push_back(p.back() + n.back() * LANE_OFFSET);
+    return o;
+}
+
+static std::vector<Vec2> departPath(const std::vector<Vec2>& road, const Vec2& home) {
+    std::vector<Vec2> o = lanePath(road);
+    if (o.empty()) return road;
+    if (o.size() >= 2 && std::fabs(o[0].y - o[1].y) < 0.01f) o[0].x = home.x;   // start from this bay, no backtracking
+    o.insert(o.begin(), Vec2(home.x, o.front().y));                              // leave the bay straight onto the road
+    return o;
+}
+
+static std::vector<Vec2> returnPath(const std::vector<Vec2>& road, const Vec2& home) {
+    std::vector<Vec2> o = lanePath(road);
+    if (o.size() >= 2 && std::fabs(o[o.size() - 1].y - o[o.size() - 2].y) < 0.01f) o.back().x = home.x;   // stop in front of this bay
+    if (!o.empty()) o.push_back(Vec2(home.x, o.back().y));                       // turn into the bay straight
+    o.push_back(home);
+    return o;
+}
+
 bool GarbageTruck::assign(int binId, const RoutePlanner& rp, WasteManager& wm, int depotNode) {
     if (state != T_IDLE || binId < 0 || binId >= (int)wm.bins.size()) return false;
     Dustbin& b = wm.bins[binId];
@@ -56,7 +94,7 @@ bool GarbageTruck::assign(int binId, const RoutePlanner& rp, WasteManager& wm, i
     route = r;
     routeDist = dist;
     routeCost = cost;
-    mover.setPath(routePoints(rp, r));
+    mover.setPath(departPath(routePoints(rp, r), home));
     state = T_TO_BIN;
     targetBin = binId;
     b.status = CS_ASSIGNED;
@@ -94,8 +132,8 @@ void GarbageTruck::update(float dt, const RoutePlanner& rp, WasteManager& wm, Re
                 // plan the way back with Dijkstra again
                 std::vector<int> r = rp.shortestPath(b.nodeId, depotNode, &routeCost, &routeDist);
                 route = r;
-                std::vector<Vec2> pts = routePoints(rp, r);
-                pts.push_back(home);
+                std::vector<Vec2> pts = returnPath(routePoints(rp, r), home);
+                
                 mover.setPath(pts);
                 state = T_RETURNING;
             }
@@ -109,6 +147,9 @@ void GarbageTruck::update(float dt, const RoutePlanner& rp, WasteManager& wm, Re
         case T_UNLOADING:
             timer += dt;
             progress = clampf(timer / UNLOAD_TIME, 0, 1);
+            while (mover.angle > 180) mover.angle -= 360;                   // swing the truck straight in its bay
+            while (mover.angle < -180) mover.angle += 360;
+            mover.angle += (0 - mover.angle) * clampf(dt * 8.0f, 0.0f, 1.0f);
             if (timer >= UNLOAD_TIME) {
                 char msg[96];
                 std::snprintf(msg, sizeof(msg), "%s delivered %.0f kg to the Recycling Facility", label().c_str(), cargoTotal());

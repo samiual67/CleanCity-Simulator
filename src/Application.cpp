@@ -54,7 +54,7 @@ void Application::buildButtons() {
     for (int i = 0; i < 11; i++)
         controlButtons.push_back(Button(defs[i].id, 972 + (i % 2) * 150, 98 + (i / 2) * 40, 144, 34, defs[i].label, defs[i].c));
     categoryButton = Button(BTN_C_CATEGORY, 972, 344 + 182 - 38, 296, 30, "Change Waste Category", C_TEAL);
-    reportButton.push_back(Button(BTN_REPORT, 1060, 16, 196, 30, "Generate Report", C_GREEN));
+    reportButton.push_back(Button(BTN_REPORT, 684, 656, 240, 34, "Generate Report (PDF)", C_GREEN));
 }
 
 // ------------------------------------------------------------------ update / render
@@ -290,7 +290,7 @@ void Application::handleButton(int id) {
         case BTN_C_TRANSFORM: screen = SCR_LAB; break;
         case BTN_C_AUTO: sim.cmdToggleAuto(); break;
         case BTN_C_CATEGORY: sim.cmdCycleCategory(); break;
-        case BTN_REPORT: Statistics::saveReport(sim, "report_summary.txt"); showReport = true; break;
+        case BTN_REPORT: Statistics::saveReportPdf(sim, "report_summary.pdf"); showReport = true; break;
         default: break;
     }
 }
