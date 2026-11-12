@@ -268,7 +268,7 @@ void CityMapView::draw(const Simulation& sim) {
         for (size_t i = 0; i < sim.cars.size(); i++) {
             const AmbientCar& c = sim.cars[i];
             float a = c.mover.angle * PI_F / 180.0f;
-            Vec2 p = c.mover.pos + Vec2(-std::sin(a), std::cos(a)) * 5.0f;     // drive in the right lane
+            Vec2 p = c.mover.pos; (void)a;   // the lane is part of the car position now;     // drive in the right lane
             Gfx::pushMatrix(makeTranslation(p.x, p.y) * makeRotation(c.mover.angle));
             Objects::drawCar(c.color, night);
             Gfx::popMatrix();

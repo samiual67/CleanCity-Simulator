@@ -73,7 +73,59 @@ static bool boxHit(const Vec2& c1, const Vec2& u1, float hl1, const Vec2& c2, co
     return true;
 }
 
+// box overlap with separate half widths (trucks 24 x 9, cars 9 x 5)
+static bool boxHit2(const Vec2& c1, const Vec2& u1, float hl1, float hw1, const Vec2& c2, const Vec2& u2, float hl2, float hw2) {
+    Vec2 v1(-u1.y, u1.x), v2(-u2.y, u2.x);
+    Vec2 axes[4] = { u1, v1, u2, v2 };
+    Vec2 d = c2 - c1;
+    for (int k = 0; k < 4; k++) {
+        const Vec2& ax = axes[k];
+        float dist = std::fabs(d.x * ax.x + d.y * ax.y);
+        float r1 = hl1 * std::fabs(u1.x * ax.x + u1.y * ax.y) + hw1 * std::fabs(v1.x * ax.x + v1.y * ax.y);
+        float r2 = hl2 * std::fabs(u2.x * ax.x + u2.y * ax.y) + hw2 * std::fabs(v2.x * ax.x + v2.y * ax.y);
+        if (dist >= r1 + r2) return false;
+    }
+    return true;
+}
+static std::vector<int> gCarWait;     // truck (or -2 = car) each ambient car is waiting for, -1 = driving
+static std::vector<int> gTruckWaitCar; // car each truck is waiting for, -1 = none
+
+// would the truck, driving along its path for the next 'look' units, run into the vehicle box (c2, deg2, hl2, hw2)?
+static bool corridorHit(const Mover& m, float hl, float hw, float look, const Vec2& c2, float deg2, float hl2, float hw2) {
+    float a2 = deg2 * PI_F / 180.0f;
+    Vec2 u2(std::cos(a2), std::sin(a2));
+    Vec2 p = m.pos;
+    size_t ti = m.ti;
+    for (float d = 0.0f; d <= look; d += 8.0f) {
+        float s = 8.0f;                                          // move 8 units along the path
+        while (s > 0.0f && ti < m.wp.size()) {
+            Vec2 tg = m.wp[ti] - p;
+            float L = std::sqrt(tg.x * tg.x + tg.y * tg.y);
+            if (L > s) { p = p + tg * (s / L); s = 0.0f; }
+            else { p = m.wp[ti]; s -= L; ti++; }
+        }
+        if (ti >= m.wp.size()) break;
+        Vec2 dir = m.wp[ti] - p;
+        float L = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        if (L < 0.01f) continue;
+        dir = dir * (1.0f / L);
+        if (boxHit2(p, dir, hl, hw, c2, u2, hl2, hw2)) return true;
+    }
+    return false;
+}
+
 void Simulation::update(float dt) {
+    static bool inSub = false;                                  // fast speeds run as several small steps, so vehicles cannot skip over each other
+    if (!inSub && speed > 1.5f) {
+        inSub = true;
+        float keep = speed;
+        int n = (int)(keep + 0.5f);
+        speed = 1.0f;
+        for (int k = 0; k < n; k++) update(dt);
+        speed = keep;
+        inSub = false;
+        return;
+    }
     time += dt;
     dayFactor += (dayTarget - dayFactor) * clampf(dt * 2.0f, 0, 1);
     if (std::fabs(dayTarget - dayFactor) < 0.002f) dayFactor = dayTarget;
@@ -87,14 +139,19 @@ void Simulation::update(float dt) {
     if (waitFor.size() != trucks.size()) { waitFor.assign(trucks.size(), -1); waitTime.assign(trucks.size(), 0.0f); }
     for (size_t i = 0; i < trucks.size(); i++) {
         GarbageTruck& me = trucks[i];
-        int wf = -1;
+        int wf = -1; bool carBlock = false;
+        if (gTruckWaitCar.size() != trucks.size()) gTruckWaitCar.assign(trucks.size(), -1);
+        gTruckWaitCar[i] = -1;
         if (me.mover.active && (me.state == T_TO_BIN || me.state == T_RETURNING)) {
             Vec2 tgt = me.mover.ti < me.mover.wp.size() ? me.mover.wp[me.mover.ti] : me.mover.pos;
             Vec2 dv = tgt - me.mover.pos;
             float dl = std::sqrt(dv.x * dv.x + dv.y * dv.y);
             if (dl > 0.01f) {
                 Vec2 fwd = dv * (1.0f / dl);                              // direction of travel
-                float ext = 8.0f + me.mover.speed * sdt * 2.0f;           // safety gap in front of the truck
+                float ext = 8.0f + me.mover.speed * sdt * 2.0f; if (traffic) for (size_t k = 0; k < cars.size(); k++) {
+                    float ca = cars[k].mover.angle * PI_F / 180.0f;
+                    if (corridorHit(me.mover, 24.0f, 9.0f, 46.0f + me.mover.speed * sdt * 2.0f, cars[k].mover.pos, cars[k].mover.angle, 9.0f, 5.0f)) { carBlock = true; gTruckWaitCar[i] = (int)k; break; }
+                }           // safety gap in front of the truck
                 Vec2 probe = me.mover.pos + fwd * (ext * 0.5f);
                 for (size_t j = 0; j < trucks.size(); j++) {
                     if (j == i) continue;
@@ -102,11 +159,12 @@ void Simulation::update(float dt) {
                     float oa = o.mover.angle * PI_F / 180.0f;
                     bool moving = o.mover.active && (o.state == T_TO_BIN || o.state == T_RETURNING);
                     bool stopped = !moving || waitFor[j] != -1;
-                    if (waitFor[j] == (int)i || !(o.id < me.id || stopped)) continue;
-                    if (boxHit(probe, fwd, 24.0f + ext * 0.5f, o.mover.pos, Vec2(std::cos(oa), std::sin(oa)), 24.0f, 9.0f)) { wf = (int)j; break; }
+                    if (waitFor[j] == (int)i) continue;                       // it is already waiting for me
+                    if (corridorHit(me.mover, 24.0f, 9.0f, 46.0f + me.mover.speed * sdt * 2.0f, o.mover.pos, o.mover.angle, 24.0f, 9.0f)) { wf = (int)j; break; }
                 }
             }
         }
+        if (wf < 0 && carBlock) wf = (int)trucks.size();
         if (wf >= 0) { waitTime[i] += sdt; if (waitTime[i] > 5.0f) wf = -1; }     // never wait forever
         else waitTime[i] = 0;
         waitFor[i] = wf;
@@ -128,17 +186,49 @@ void Simulation::update(float dt) {
 void Simulation::updateCars(float dt) {
     for (size_t i = 0; i < cars.size(); i++) {
         AmbientCar& c = cars[i];
+        if (gCarWait.size() != cars.size()) gCarWait.assign(cars.size(), -1);
+        static std::vector<float> carWaitT;
+        if (carWaitT.size() != cars.size()) carWaitT.assign(cars.size(), 0.0f);
+        gCarWait[i] = -1;
+        if (c.mover.active && c.mover.ti < c.mover.wp.size()) {       // keep distance to trucks and other cars
+            Vec2 cd = c.mover.wp[c.mover.ti] - c.mover.pos;
+            float cl = std::sqrt(cd.x * cd.x + cd.y * cd.y);
+            if (cl > 0.01f) {
+                Vec2 cf = cd * (1.0f / cl);
+                float cext = 6.0f + c.mover.speed * dt * 2.0f;
+                Vec2 cp = c.mover.pos + cf * (cext * 0.5f);
+                int blocker = -1;
+                for (size_t t = 0; t < trucks.size() && blocker < 0; t++) {
+                    if (t < gTruckWaitCar.size() && gTruckWaitCar[t] == (int)i) continue;   // that truck is waiting for me: I go first
+                    float ta = trucks[t].mover.angle * PI_F / 180.0f;
+                    float ct = cext + 40.0f;                                   // cars look further ahead for trucks
+                    if (boxHit2(c.mover.pos + cf * (ct * 0.5f), cf, 9.0f + ct * 0.5f, 7.0f, trucks[t].mover.pos, Vec2(std::cos(ta), std::sin(ta)), 24.0f, 9.0f)) blocker = (int)t;
+                }
+                for (size_t k = 0; k < cars.size() && blocker < 0; k++) {
+                    if (k == i) continue;
+                    float ka = cars[k].mover.angle * PI_F / 180.0f;
+                    if ((k < i || gCarWait[k] != -1) && boxHit2(cp, cf, 9.0f + cext * 0.5f, 5.0f, cars[k].mover.pos, Vec2(std::cos(ka), std::sin(ka)), 9.0f, 5.0f)) blocker = -2;
+                }
+                if (blocker != -1) {
+                    carWaitT[i] += dt;
+                    if (carWaitT[i] < (blocker >= 0 ? 40.0f : 3.0f)) { gCarWait[i] = blocker; continue; }   // wait, but never forever
+                } else carWaitT[i] = 0;
+            }
+        }
         if (c.mover.update(dt) || (!c.mover.active)) {
             std::vector<int> nb = planner.neighbors(c.node);
             // avoid immediate U-turns when possible
             std::vector<int> ok;
             for (size_t k = 0; k < nb.size(); k++) if (nb[k] != c.prevNode && nb[k] != depotNode) ok.push_back(nb[k]);
+            if (ok.empty()) for (size_t k = 0; k < nb.size(); k++) if (nb[k] != depotNode) ok.push_back(nb[k]);   // cars never use the depot road
             if (ok.empty()) ok = nb;
             int next = ok[(size_t)((c.node * 7 + (int)(time * 10) + (int)i * 3) % (int)ok.size())];
             c.prevNode = c.node;
             c.node = next;
             std::vector<Vec2> p;
-            p.push_back(planner.nodes()[next]);
+            Vec2 sa = planner.nodes()[c.prevNode], sb = planner.nodes()[next], sd = sb - sa;
+            float sl = std::sqrt(sd.x * sd.x + sd.y * sd.y);
+            p.push_back(sl > 0.01f ? sb + Vec2(sd.y / sl, -sd.x / sl) * 6.0f : sb);        // left lane
             c.mover.setPath(p);
         }
     }

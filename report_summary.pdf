@@ -15,33 +15,33 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 1623 >>
+<< /Length 1633 >>
 stream
 BT /F2 16 Tf 50 800 Td (CleanCity Simulator - Simulation Report) Tj ET
 1 w 50 790 m 545 790 l S
-BT /F1 10 Tf 50 765 Td (Simulation time: 04:23   Status: running) Tj ET
+BT /F1 10 Tf 50 765 Td (Simulation time: 03:08   Status: running) Tj ET
 BT /F1 10 Tf 50 751 Td (Dustbins: 12 total, 0 full, 12 partial, 0 empty) Tj ET
-BT /F1 10 Tf 50 737 Td (Waste collected: 2215 kg in 24 collections) Tj ET
-BT /F1 10 Tf 50 723 Td (Waste remaining in bins: 563 kg) Tj ET
-BT /F1 10 Tf 50 709 Td (City cleanliness: 57%) Tj ET
+BT /F1 10 Tf 50 737 Td (Waste collected: 2016 kg in 21 collections) Tj ET
+BT /F1 10 Tf 50 723 Td (Waste remaining in bins: 514 kg) Tj ET
+BT /F1 10 Tf 50 709 Td (City cleanliness: 61%) Tj ET
 BT /F1 10 Tf 50 695 Td () Tj ET
 BT /F1 10 Tf 50 681 Td (Waste by category \(collected / remaining / recycled\):) Tj ET
-BT /F1 10 Tf 50 667 Td (  Organic     466 kg  /     167 kg  /     396 kg) Tj ET
-BT /F1 10 Tf 50 653 Td (  Plastic     604 kg  /     108 kg  /     362 kg) Tj ET
-BT /F1 10 Tf 50 639 Td (  Paper       295 kg  /      76 kg  /     236 kg) Tj ET
-BT /F1 10 Tf 50 625 Td (  Metal       504 kg  /     136 kg  /     479 kg) Tj ET
-BT /F1 10 Tf 50 611 Td (  Glass       346 kg  /      76 kg  /     311 kg) Tj ET
+BT /F1 10 Tf 50 667 Td (  Organic     495 kg  /     110 kg  /     350 kg) Tj ET
+BT /F1 10 Tf 50 653 Td (  Plastic     544 kg  /      76 kg  /     270 kg) Tj ET
+BT /F1 10 Tf 50 639 Td (  Paper       313 kg  /      56 kg  /     250 kg) Tj ET
+BT /F1 10 Tf 50 625 Td (  Metal       390 kg  /     167 kg  /     371 kg) Tj ET
+BT /F1 10 Tf 50 611 Td (  Glass       273 kg  /     104 kg  /     246 kg) Tj ET
 BT /F1 10 Tf 50 597 Td () Tj ET
 BT /F1 10 Tf 50 583 Td (Zone cleanliness:) Tj ET
-BT /F1 10 Tf 50 569 Td (  Green Park       48%  \(Needs attention\)) Tj ET
-BT /F1 10 Tf 50 555 Td (  Downtown         70%  \(Clean\)) Tj ET
-BT /F1 10 Tf 50 541 Td (  Riverside        40%  \(Needs attention\)) Tj ET
-BT /F1 10 Tf 50 527 Td (  Industrial Hub   66%  \(Clean\)) Tj ET
+BT /F1 10 Tf 50 569 Td (  Green Park       65%  \(Clean\)) Tj ET
+BT /F1 10 Tf 50 555 Td (  Downtown         52%  \(Needs attention\)) Tj ET
+BT /F1 10 Tf 50 541 Td (  Riverside        49%  \(Needs attention\)) Tj ET
+BT /F1 10 Tf 50 527 Td (  Industrial Hub   65%  \(Clean\)) Tj ET
 BT /F1 10 Tf 50 513 Td () Tj ET
 BT /F1 10 Tf 50 499 Td (Trucks:) Tj ET
-BT /F1 10 Tf 50 485 Td (  TR-1: 9 collections, 841 kg - En route to DB-06) Tj ET
-BT /F1 10 Tf 50 471 Td (  TR-2: 8 collections, 703 kg - Idle at depot) Tj ET
-BT /F1 10 Tf 50 457 Td (  TR-3: 7 collections, 671 kg - Idle at depot) Tj ET
+BT /F1 10 Tf 50 485 Td (  TR-1: 7 collections, 716 kg - Returning to depot) Tj ET
+BT /F1 10 Tf 50 471 Td (  TR-2: 8 collections, 705 kg - En route to DB-05) Tj ET
+BT /F1 10 Tf 50 457 Td (  TR-3: 6 collections, 595 kg - Returning to depot) Tj ET
 endstream
 endobj
 xref
@@ -56,5 +56,5 @@ xref
 trailer
 << /Size 7 /Root 1 0 R >>
 startxref
-2068
+2078
 %%EOF
