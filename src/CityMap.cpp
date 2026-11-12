@@ -202,7 +202,7 @@ void CityMapView::drawLights(const Simulation& sim) {
         if ((int)i == sim.depotNode) continue;
         float ph = std::fmod(sim.time + (float)i * 1.3f, 8.0f);
         Color lamp = ph < 3.4f ? C_GREEN : (ph < 4.0f ? C_YELLOW : (ph < 7.4f ? C_RED : C_YELLOW));
-        Vec2 p(N[i].x - 15, N[i].y + 13);
+        Vec2 p(N[i].x - ROAD_W / 2 - 2, N[i].y + ROAD_W / 2);
         Gfx::roundRect(p.x - 2.6f, p.y - 4.5f, 5.2f, 9, 2, Color(0.08f, 0.09f, 0.11f));
         Gfx::circle(p.x, p.y, 1.8f, lamp, 8);
         Gfx::circle(p.x, p.y, 4.5f, withAlpha(lamp, 0.18f), 10);

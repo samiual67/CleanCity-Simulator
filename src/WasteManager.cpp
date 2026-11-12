@@ -34,7 +34,7 @@ void WasteManager::init(const RoutePlanner& rp) {
         { 12, 90, 72, W_PLASTIC }, { 13, 100, 10, W_PAPER },  { 14, 140, 55, W_METAL },
         { 16, 100, 100, W_GLASS }, { 17, 110, 25, W_ORGANIC }, { 18, 100, 48, W_PLASTIC }
     };
-    static const Vec2 OFF[4] = { Vec2(21, -21), Vec2(-21, -21), Vec2(21, 21), Vec2(-21, 21) };
+    static const Vec2 OFF[4] = { Vec2(24, -24), Vec2(-24, -24), Vec2(24, 24), Vec2(-24, 24) };
     const int n = (int)(sizeof(S) / sizeof(S[0]));
     for (int i = 0; i < n; i++) {
         Dustbin b;

@@ -6,7 +6,7 @@
 namespace City {
     const int   COLS = 5, ROWS = 4;               // intersections
     const float X0 = 100, Y0 = 80, DX = 200, DY = 147;
-    const float ROAD_W = 26;
+    const float ROAD_W = 36;
     const float WORLD_W = 1000, WORLD_H = 600;
 
     enum BlockType { B_RES, B_COM, B_HOSPITAL, B_SCHOOL, B_PARK, B_SHOP, B_LAKE, B_RECYCLE, B_DEPOT };

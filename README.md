@@ -1,27 +1,236 @@
-# CleanCity Simulator - Smart City Waste Management Simulation (C++ / OpenGL / FreeGLUT)
+<div align="center">
 
-100% software simulation: no hardware, sensors, GPS or real data. (~70% complete build: all core features work.)
+# 🏙️ CleanCity 360
 
-## Build & run
-**Windows - Code::Blocks (MinGW):** install FreeGLUT (copy `include/GL/*` to MinGW `include/GL`, `lib/libfreeglut.a` to MinGW `lib`, `freeglut.dll` next to the exe).
-Create an empty project, add all `src/*.cpp`, set *Search directories -> Compiler* to `include`, add compiler flag `-std=c++11`,
-and link libraries: `freeglut opengl32 glu32`. Or just run `build_windows.bat`.
-**Windows - Visual Studio:** new empty C++ project, add `src/*.cpp`, add `include` to Additional Include Directories, link `freeglut.lib opengl32.lib glu32.lib`.
-**Linux:** `sudo apt install freeglut3-dev` then `make && ./CleanCitySimulator`.  **macOS:** use `-framework GLUT -framework OpenGL`.
+### Smart City Waste Management Simulator
 
-## How to use
-1. *Start Simulation* -> City Map opens. Click a dustbin (details popup + info card).
-2. *Find Shortest Route* draws the Dijkstra route; *Dispatch Garbage Truck* sends a truck (stops, collects, returns, unloads to recycling).
-3. *Toggle Traffic*: congested roads (red) cost 2.5x, routes adapt. *Toggle Day/Night*, *Auto Dispatch*, *Add Waste*, *Empty Selected Bin*, *Reset*.
-4. Tabs: Dashboard, City Map, Recycling, Statistics (+ Generate Report -> `report_summary.txt`).
+*A fully software-based 2D simulation built with **C++**, **OpenGL** and **FreeGLUT** to demonstrate Computer Graphics concepts through a real-world problem.*
 
-Keys: Space pause/resume, 1-5 screens, N night, T traffic, A add waste, E empty, D dispatch, R route, S speed x1/2/4, U auto, +/- zoom, arrows pan, 0 reset view, Esc back/exit.
-Mouse: wheel zoom, drag pan, click select.
+![C++](https://img.shields.io/badge/C%2B%2B-11-00599C?logo=cplusplus&logoColor=white)
+![OpenGL](https://img.shields.io/badge/OpenGL-FreeGLUT-5586A4?logo=opengl&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+![Status](https://img.shields.io/badge/Status-Core%20features%20complete-brightgreen)
 
-## Structure
-`src/` + `include/`: Application (screens/input), Simulation (state + commands), CityLayout/CityMap (city & render), Dustbin, WasteManager, GarbageTruck,
-RoutePlanner (Dijkstra), RecyclingCenter, Dashboard (+recycling screen), Statistics, TransformLab, Transformation (Mat3), Gfx (matrix-stack drawing),
-Objects (truck/tree/building/bin), Animation, UIComponents. Logic (Simulation, WasteManager, GarbageTruck, RoutePlanner) is separate from rendering.
+</div>
 
-## Not finished yet (the remaining ~30%)
-Custom font/asset loading, sound, more polish on transitions, truck traffic-light stopping, screenshots/video, final report figures.
+---
+
+## 📖 Overview
+
+**CleanCity 360** simulates how a smart city collects and recycles its waste, entirely in software. There is no hardware, no sensors, no GPS and no real-world data. Dustbins fill up over time, garbage trucks are dispatched along **Dijkstra-optimised routes**, waste is delivered to a recycling center, and a live dashboard tracks everything.
+
+The project is designed as an academic Computer Graphics showcase: every visual element (truck movement, camera, UI, transformation lab) is driven by hand-written **3×3 homogeneous transformation matrices** and a custom matrix-stack renderer.
+
+---
+
+## ✨ Features
+
+| Area | What it does |
+|------|--------------|
+| 🗺️ **Interactive City Map** | A 5×4 grid of intersections with roads, buildings, trees, traffic lights, clouds and water. Click any dustbin to inspect it. |
+| 🚛 **Garbage Truck Simulation** | Trucks move through the states *Idle → To Bin → Collecting → Returning → Unloading* with animated wheels and collection effects. |
+| 🧭 **Shortest-Path Routing** | Dijkstra's algorithm (priority queue) over a weighted road graph. The route drawn on screen is exactly the route the truck drives. |
+| 🚦 **Traffic Mode** | Congested roads turn red and cost **2.5×** more, so routes adapt dynamically. |
+| 🌗 **Day / Night Cycle** | Smooth time-based blend between day and night scenes. |
+| ♻️ **Recycling Center** | Delivered waste is processed over time using category-specific recycling rates. |
+| 📊 **Dashboard & Statistics** | Animated counters, zone cleanliness, bin levels and a one-click **PDF report**. |
+| 🧪 **CG Lab** | An interactive screen that demonstrates every 2D transformation and shows its matrix. |
+| 🤖 **Auto Dispatch** | Trucks are sent automatically to bins that need service. |
+
+---
+
+## 🎓 Computer Graphics Concepts Demonstrated
+
+- **2D transformations using 3×3 homogeneous matrices** (`Transformation.cpp`): translation, rotation, scaling, reflection (X-axis, Y-axis, origin, `y = x`) and shearing.
+- **Matrix stack renderer** (`Gfx`): every vertex is multiplied by the current matrix, so truck placement and heading, camera zoom/pan and the CG Lab all share one pipeline.
+- **Camera model:** `M = T(viewport centre + pan) · S(zoom) · T(−world centre)`; mouse picking uses the inverse `M⁻¹`.
+- **Time-based animation (`dt`):** truck motion along waypoints, wheel rotation, traffic lights, clouds, waves, day/night blending and animated dashboard counters.
+- **Rendering primitives:** `GL_LINES`, points, triangles, quads, polygons, triangle fans, quad strips, vertex-colour interpolation (gradients), alpha blending, scissor clipping and 2.5D oblique building projection.
+- **Interaction:** mouse picking, wheel zoom, drag pan, on-screen buttons and keyboard shortcuts.
+
+---
+
+## 🧠 Simulation Model
+
+**Bin levels**
+
+| Level | Fill range |
+|-------|-----------|
+| 🟢 Low | 0 – 30 % |
+| 🟡 Medium | 31 – 70 % |
+| 🟠 High | 71 – 99 % |
+| 🔴 Full | 100 % |
+
+**Routing** – Intersections are graph nodes; roads are weighted edges with `weight = length × congestion factor`. Traffic ON multiplies congested roads by **2.5**.
+
+**Cleanliness** – `Zone cleanliness = 100 × (1 − waste / capacity)`
+
+**Recycling rates**
+
+| Category | Rate |
+|----------|------|
+| Organic | 85 % |
+| Plastic | 60 % |
+| Paper | 80 % |
+| Metal | 95 % |
+| Glass | 90 % |
+
+The default scenario contains **12 dustbins** (`DB-01` … `DB-12`) across the road network plus a depot node. See [`data/sample_simulation_data.txt`](data/sample_simulation_data.txt) for the full table.
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
+
+- A C++11 compiler (MinGW-w64 / GCC / Clang / MSVC)
+- **FreeGLUT** and OpenGL development libraries
+
+### 🪟 Windows
+
+**Option 1 – Quick build (MinGW-w64)**
+
+```bat
+build_windows.bat
+```
+
+This compiles the project and launches `CleanCitySimulator.exe`. Make sure FreeGLUT headers and libraries are in your MinGW folders and `freeglut.dll` is next to the executable.
+
+**Option 2 – Code::Blocks (MinGW)**
+
+1. Install FreeGLUT: copy `include/GL/*` into MinGW `include/GL`, `lib/libfreeglut.a` into MinGW `lib`, and place `freeglut.dll` next to the exe.
+2. Create an empty project and add all `src/*.cpp`.
+3. Add `include` to *Search directories → Compiler* and the flag `-std=c++11`.
+4. Link: `freeglut opengl32 glu32`.
+
+**Option 3 – Visual Studio**
+
+1. Create a new empty C++ project and add `src/*.cpp`.
+2. Add `include` to *Additional Include Directories*.
+3. Link: `freeglut.lib opengl32.lib glu32.lib`.
+
+### 🐧 Linux
+
+```bash
+sudo apt install freeglut3-dev
+make
+./CleanCitySimulator
+```
+
+Or with CMake:
+
+```bash
+mkdir build && cd build
+cmake ..
+make
+./CleanCitySimulator
+```
+
+### 🍎 macOS
+
+Compile with the system frameworks:
+
+```bash
+g++ -std=c++11 -O2 -Iinclude src/*.cpp -o CleanCitySimulator -framework GLUT -framework OpenGL
+```
+
+---
+
+## 🎮 How to Use
+
+1. Click **Start Simulation**. The city map opens.
+2. Click a dustbin to see its details popup and info card.
+3. Click **Find Shortest Route** to draw the Dijkstra route, then **Dispatch Garbage Truck** to send a truck. It stops at the bin, collects, returns and unloads at the recycling center.
+4. Try **Toggle Traffic**, **Toggle Day/Night**, **Auto Dispatch**, **Add Waste**, **Empty Selected Bin** and **Reset**.
+5. Use the tabs to switch between **Dashboard**, **City Map**, **Recycling**, **Statistics** and the **CG Lab**. In Statistics, click **Generate Report** to save `report_summary.pdf`.
+
+### ⌨️ Keyboard Shortcuts
+
+| Key | Action | Key | Action |
+|-----|--------|-----|--------|
+| `Space` | Start / Pause / Resume | `1` – `5` | Switch screens |
+| `D` | Dispatch truck | `R` | Find shortest route |
+| `T` | Toggle traffic | `N` | Toggle day / night |
+| `A` | Add waste | `E` | Empty selected bin |
+| `U` | Toggle auto dispatch | `S` | Cycle speed ×1 / ×2 / ×4 |
+| `+` / `-` | Zoom in / out | `0` | Reset view |
+| `↑ ↓ ← →` | Pan the map | `Esc` | Back / Exit |
+
+### 🖱️ Mouse
+
+| Action | Effect |
+|--------|--------|
+| Wheel | Zoom |
+| Drag | Pan |
+| Click | Select a dustbin / press a button |
+
+---
+
+## 📁 Project Structure
+
+```
+CleanCity360/
+├── include/                 # Header files
+├── src/                     # Source files
+│   ├── main.cpp             # GLUT setup, main loop (~60 FPS timer)
+│   ├── Application.cpp      # Screens, input handling
+│   ├── Simulation.cpp       # Simulation state and commands
+│   ├── CityLayout.cpp       # Road graph and city layout
+│   ├── CityMap.cpp          # City rendering
+│   ├── WasteManager.cpp     # Bins, levels, sample data
+│   ├── GarbageTruck.cpp     # Truck state machine and movement
+│   ├── RoutePlanner.cpp     # Dijkstra shortest path
+│   ├── RecyclingCenter.cpp  # Recycling processing
+│   ├── Dashboard.cpp        # Dashboard and recycling screens
+│   ├── Statistics.cpp       # Statistics screen and PDF report
+│   ├── TransformLab.cpp     # CG Lab: transformation demos
+│   ├── Transformation.cpp   # 3x3 matrix (Mat3) operations
+│   ├── Gfx.cpp              # Matrix-stack drawing helpers
+│   ├── Objects.cpp          # Truck, tree, building, bin drawing
+│   ├── Animation.cpp        # Time-based animation helpers
+│   └── UIComponents.cpp     # Buttons and UI widgets
+├── data/
+│   └── sample_simulation_data.txt
+├── CMakeLists.txt
+├── Makefile
+├── build_windows.bat
+├── README.md
+└── REPORT.md
+```
+
+The design keeps **logic** (`Simulation`, `WasteManager`, `GarbageTruck`, `RoutePlanner`) separate from **rendering** (`CityMap`, `Gfx`, `Objects`, `Dashboard`).
+
+---
+
+## 🚧 Project Status
+
+All core features are working. Planned improvements:
+
+- [ ] Custom font and asset loading
+- [ ] Sound effects
+- [ ] Smoother screen transitions
+- [ ] Trucks stopping at traffic lights
+- [ ] Screenshots and demo video
+- [ ] Final report figures
+
+---
+
+## 🎬 Suggested Demo Flow (~3 min)
+
+Splash → Start → select a bin → Find Route → Dispatch → zoom / pan → Traffic ON → Night → Dashboard → Recycling → Statistics report → CG Lab (each of the 5 transformations with its matrix).
+
+---
+
+## 👤 Author
+
+**Md. Samiual Mia**
+CSE Undergraduate · Bangladesh
+GitHub: [@samiual67](https://github.com/samiual67)
+
+---
+
+<div align="center">
+
+⭐ If you find this project interesting, consider giving the repository a star!
+
+</div>

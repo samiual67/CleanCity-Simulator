@@ -7,7 +7,7 @@
 #include "RecyclingCenter.h"
 
 enum TruckState { T_IDLE = 0, T_TO_BIN, T_COLLECTING, T_RETURNING, T_UNLOADING };
-static const float LANE_OFFSET = 9.5f;   // trucks drive in the left lane of the road
+static const float LANE_OFFSET = 11.5f;   // trucks drive in the left lane of the road
 
 struct GarbageTruck {
     int   id;
