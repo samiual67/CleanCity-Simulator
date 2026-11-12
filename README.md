@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏙️ CleanCity 360
+# 🏙️ CleanCitySimulator
 
 ### Smart City Waste Management Simulator
 
@@ -17,7 +17,7 @@
 
 ## 📖 Overview
 
-**CleanCity 360** simulates how a smart city collects and recycles its waste, entirely in software. There is no hardware, no sensors, no GPS and no real-world data. Dustbins fill up over time, garbage trucks are dispatched along **Dijkstra-optimised routes**, waste is delivered to a recycling center, and a live dashboard tracks everything.
+**CleanCitySimulator** simulates how a smart city collects and recycles its waste, entirely in software. There is no hardware, no sensors, no GPS and no real-world data. Dustbins fill up over time, garbage trucks are dispatched along **Dijkstra-optimised routes**, waste is delivered to a recycling center, and a live dashboard tracks everything.
 
 The project is designed as an academic Computer Graphics showcase: every visual element (truck movement, camera, UI, transformation lab) is driven by hand-written **3×3 homogeneous transformation matrices** and a custom matrix-stack renderer.
 
