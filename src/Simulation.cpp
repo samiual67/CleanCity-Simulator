@@ -89,6 +89,7 @@ static bool boxHit2(const Vec2& c1, const Vec2& u1, float hl1, float hw1, const 
 }
 static std::vector<int> gCarWait;     // truck (or -2 = car) each ambient car is waiting for, -1 = driving
 static std::vector<int> gTruckWaitCar; // car each truck is waiting for, -1 = none
+static std::vector<int> gJuncOwner;    // ambient car that currently owns each junction, -1 = free
 
 // would the truck, driving along its path for the next 'look' units, run into the vehicle box (c2, deg2, hl2, hw2)?
 static bool corridorHit(const Mover& m, float hl, float hw, float look, const Vec2& c2, float deg2, float hl2, float hw2) {
@@ -199,6 +200,29 @@ void Simulation::updateCars(float dt) {
     for (size_t i = 0; i < cars.size(); i++) {
         AmbientCar& c = cars[i];
         float cSlow = 1.0f;
+        if (gJuncOwner.size() != planner.nodes().size()) gJuncOwner.assign(planner.nodes().size(), -1);
+        static std::vector<float> juncWait;
+        if (juncWait.size() != cars.size()) juncWait.assign(cars.size(), 0.0f);
+        {                                                                // one car at a time inside a crossing
+            const std::vector<Vec2>& jn = planner.nodes();
+            for (size_t n = 0; n < jn.size(); n++)                        // free the junctions this car has left
+                if (gJuncOwner[n] == (int)i && distf(c.mover.pos, jn[n]) > 46.0f) gJuncOwner[n] = -1;
+            if (c.mover.active) {
+                Mover nx = c.mover; nx.update(dt);
+                bool wait = false, truckIn = false;
+                for (size_t n = 0; n < jn.size() && !wait; n++) {
+                    if ((int)n == depotNode) continue;
+                    if (!(distf(nx.pos, jn[n]) < 40.0f && distf(c.mover.pos, jn[n]) >= 40.0f)) continue;
+                    if (gJuncOwner[n] != -1 && gJuncOwner[n] != (int)i) wait = true;
+                    for (size_t t = 0; t < trucks.size(); t++)                 // a truck is collecting or turning in this crossing
+                        if (trucks[t].state != T_IDLE && distf(trucks[t].mover.pos, jn[n]) < 40.0f) { wait = true; truckIn = true; }
+                }
+                if (wait && juncWait[i] < (truckIn ? 15.0f : 4.0f)) { juncWait[i] += dt; continue; }   // wait outside, but never forever
+                if (!wait) juncWait[i] = 0;
+                for (size_t n = 0; n < jn.size(); n++)
+                    if ((int)n != depotNode && distf(nx.pos, jn[n]) < 40.0f && (gJuncOwner[n] == -1 || wait)) gJuncOwner[n] = (int)i;
+            }
+        }
         if (gCarWait.size() != cars.size()) gCarWait.assign(cars.size(), -1);
         static std::vector<float> carWaitT;
         if (carWaitT.size() != cars.size()) carWaitT.assign(cars.size(), 0.0f);
