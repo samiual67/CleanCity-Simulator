@@ -19,7 +19,7 @@
 
 **CleanCitySimulator** simulates how a smart city collects and recycles its waste, entirely in software. There is no hardware, no sensors, no GPS and no real-world data. Dustbins fill up over time, garbage trucks are dispatched along **Dijkstra-optimised routes**, waste is delivered to a recycling center, and a live dashboard tracks everything.
 
-The project is designed as an academic Computer Graphics showcase: every visual element (truck movement, camera, UI, transformation lab) is driven by hand-written **3×3 homogeneous transformation matrices** and a custom matrix-stack renderer.
+The project is designed as an academic Computer Graphics showcase: the map, trucks, camera and animations are drawn with a custom matrix-stack renderer.
 
 ---
 
@@ -34,15 +34,13 @@ The project is designed as an academic Computer Graphics showcase: every visual 
 | 🌗 **Day / Night Cycle** | Smooth time-based blend between day and night scenes. |
 | ♻️ **Recycling Center** | Delivered waste is processed over time using category-specific recycling rates. |
 | 📊 **Dashboard & Statistics** | Animated counters, zone cleanliness, bin levels and a one-click **PDF report**. |
-| 🧪 **CG Lab** | An interactive screen that demonstrates every 2D transformation and shows its matrix. |
 | 🤖 **Auto Dispatch** | Trucks are sent automatically to bins that need service. |
 
 ---
 
 ## 🎓 Computer Graphics Concepts Demonstrated
 
-- **2D transformations using 3×3 homogeneous matrices** (`Transformation.cpp`): translation, rotation, scaling, reflection (X-axis, Y-axis, origin, `y = x`) and shearing.
-- **Matrix stack renderer** (`Gfx`): every vertex is multiplied by the current matrix, so truck placement and heading, camera zoom/pan and the CG Lab all share one pipeline.
+- **Matrix stack renderer** (`Gfx`): every vertex is multiplied by the current matrix, so truck placement and heading, and camera zoom/pan all share one pipeline.
 - **Camera model:** `M = T(viewport centre + pan) · S(zoom) · T(−world centre)`; mouse picking uses the inverse `M⁻¹`.
 - **Time-based animation (`dt`):** truck motion along waypoints, wheel rotation, traffic lights, clouds, waves, day/night blending and animated dashboard counters.
 - **Rendering primitives:** `GL_LINES`, points, triangles, quads, polygons, triangle fans, quad strips, vertex-colour interpolation (gradients), alpha blending, scissor clipping and 2.5D oblique building projection.
@@ -142,13 +140,13 @@ g++ -std=c++11 -O2 -Iinclude src/*.cpp -o CleanCitySimulator -framework GLUT -fr
 2. Click a dustbin to see its details popup and info card.
 3. Click **Find Shortest Route** to draw the Dijkstra route, then **Dispatch Garbage Truck** to send a truck. It stops at the bin, collects, returns and unloads at the recycling center.
 4. Try **Toggle Traffic**, **Toggle Day/Night**, **Auto Dispatch**, **Add Waste**, **Empty Selected Bin** and **Reset**.
-5. Use the tabs to switch between **Dashboard**, **City Map**, **Recycling**, **Statistics** and the **CG Lab**. In Statistics, click **Generate Report** to save `report_summary.pdf`.
+5. Use the tabs to switch between **Dashboard**, **City Map**, **Recycling**, and **Statistics**. In Statistics, click **Generate Report** to save `report_summary.pdf`.
 
 ### ⌨️ Keyboard Shortcuts
 
 | Key | Action | Key | Action |
 |-----|--------|-----|--------|
-| `Space` | Start / Pause / Resume | `1` – `5` | Switch screens |
+| `Space` | Start / Pause / Resume | `1` – `4` | Switch screens |
 | `D` | Dispatch truck | `R` | Find shortest route |
 | `T` | Toggle traffic | `N` | Toggle day / night |
 | `A` | Add waste | `E` | Empty selected bin |
@@ -169,7 +167,7 @@ g++ -std=c++11 -O2 -Iinclude src/*.cpp -o CleanCitySimulator -framework GLUT -fr
 ## 📁 Project Structure
 
 ```
-CleanCity360/
+CleanCitySimulator/
 ├── include/                 # Header files
 ├── src/                     # Source files
 │   ├── main.cpp             # GLUT setup, main loop (~60 FPS timer)
@@ -183,8 +181,6 @@ CleanCity360/
 │   ├── RecyclingCenter.cpp  # Recycling processing
 │   ├── Dashboard.cpp        # Dashboard and recycling screens
 │   ├── Statistics.cpp       # Statistics screen and PDF report
-│   ├── TransformLab.cpp     # CG Lab: transformation demos
-│   ├── Transformation.cpp   # 3x3 matrix (Mat3) operations
 │   ├── Gfx.cpp              # Matrix-stack drawing helpers
 │   ├── Objects.cpp          # Truck, tree, building, bin drawing
 │   ├── Animation.cpp        # Time-based animation helpers
@@ -217,7 +213,7 @@ All core features are working. Planned improvements:
 
 ## 🎬 Suggested Demo Flow (~3 min)
 
-Splash → Start → select a bin → Find Route → Dispatch → zoom / pan → Traffic ON → Night → Dashboard → Recycling → Statistics report → CG Lab (each of the 5 transformations with its matrix).
+Splash → Start → select a bin → Find Route → Dispatch → zoom / pan → Traffic ON → Night → Dashboard → Recycling → Statistics report.
 
 ---
 
